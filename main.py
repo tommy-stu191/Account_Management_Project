@@ -52,8 +52,11 @@ class Account:
 
     def del_account_id(self):
         # Deleting the account_id and also the entire Account object
-        del self._account_id
-        del self
+        self._account_id = None
+        self._balance = None
+
+        if isinstance(self, Credit):
+            self._credit_limit = None
 
     # Get, set, del methods for balance
     def get_balance(self):
@@ -69,6 +72,7 @@ class Account:
         self._balance = new_balance
 
     def del_balance(self):
+        print('deleting balance...')
         self._balance = 0
 
     # Get, set, del methods for interest
@@ -144,8 +148,8 @@ class Credit(Account):
 
     def set_credit_limit(self, new_credit_limit):
         # The credit_limit must be a float type greater than zero.
-        if not isinstance(new_credit_limit, float):
-            raise TypeError('credit_limit should be a float type')
+        if not isinstance(new_credit_limit, (float, int)):
+            raise TypeError('credit_limit should be a float or integer type')
         elif new_credit_limit < self._balance:
             raise ValueError('credit_limit cannot be less than balance')
 
@@ -195,7 +199,10 @@ class Customer:
 
     def del_username(self):
         # Deleting a Customers username deletes their entire Account
-        del self
+        self.username = None
+        self.checking = None
+        self.savings = None
+        self.credit = None
 
     # Get, set, del methods for checking
     def get_checking(self):
