@@ -382,6 +382,42 @@ def cc_payment():
     return
 
 
+def save_to_csv():
+    """
+    Interface Option #9
+    Returns:
+
+    """
+    acct_file = input('accounts csv name: ')
+    try:
+        with open(acct_file+'.csv', 'w', newline='') as file:
+            writer = csv.writer(file)
+            # Writing column headers to csv
+            writer.writerow(['username','checking_id','checking_balance','savings_id','savings_balance','credit_id','credit_balance','credit_limit'])
+            # Gathering customer acct info for checking,saving, & credit
+            # --> Saves to csv
+            for customer in master_customer_list:
+                customer_checking = customer.get_checking()
+                customer_saving = customer.get_savings()
+                customer_credit = customer.get_credit()
+
+                username = customer.get_username()
+
+                chk_id = customer_checking.get_account_id()
+                chk_bal = customer_checking.get_balance()
+
+                sav_id = customer_saving.get_account_id()
+                sav_bal = customer_saving.get_balance()
+
+                cdt_id = customer_credit.get_account_id()
+                cdt_bal = customer_credit.get_balance()
+                cdt_limit = customer_credit.get_credit_limit()
+
+                writer.writerow([username, chk_id, chk_bal, sav_id, sav_bal, cdt_id, cdt_bal, cdt_limit])
+    except FileExistsError:
+        print("Error in writing csv")
+
+
 def interface():
 
     choice = ''
@@ -413,6 +449,7 @@ def interface():
         elif choice == '6':
             cc_payment()
         elif choice == '9':
+            save_to_csv()
             print("Shutting down...")
         else:
             print("Please select an actual option.")
