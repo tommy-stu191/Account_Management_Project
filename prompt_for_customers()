@@ -1,0 +1,8 @@
+def prompt_for_customer():
+    global master_customer_list
+
+    print('Select Customer: ')
+    for num in range(0, len(master_customer_list)):
+        customer = master_customer_list[num].username
+        print(f'#{num+1} - {customer}')
+    return input('Customer: #')
