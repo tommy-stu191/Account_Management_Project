@@ -378,7 +378,28 @@ def cc_payment():
     Interface Option #6
     :return:
     """
-    return
+    customer = int(prompt_for_customer()) - 1
+    account_type = (prompt_for_account())
+    amount = float(input('Dollar Amount: $'))
+    try:
+        # checks for user input edits either checking or savings based on input
+        if account_type == 1:
+            account = master_customer_list[customer].get_checking()
+        elif account_type == 2:
+            account = master_customer_list[customer].get_savings()
+
+        account.balance -= amount
+    except ValueError:
+        print(f'Insufficient funds for withdrawal of ${amount}')
+    try:
+        credit = master_customer_list[customer].get_credit()
+        credit.balance -= amount
+    except ValueError:
+        print(f'${amount} exceeds credit balance')
+
+
+    print(f'New balance: ${account.balance}\n'
+          f'New credit balance: ${credit.balance}')
 
 
 def save_to_csv():
