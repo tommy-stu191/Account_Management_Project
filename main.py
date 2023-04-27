@@ -131,8 +131,8 @@ class Credit(Account):
     # Overloading the __init__ method from Account add credit_limit.
     def __init__(self, new_id, new_balance, new_credit_limit):
         self.account_id = new_id
-        self.balance = new_balance
         self.credit_limit = new_credit_limit
+        self.balance = new_balance
         self.interest = 0.30
 
     # Overloading the __str__ method from Account to add credit_limit
@@ -150,8 +150,6 @@ class Credit(Account):
         # The credit_limit must be a float type greater than zero and less than the balance.
         if not isinstance(new_credit_limit, (float, int)):
             raise TypeError('credit_limit should be a float or integer type')
-        elif new_credit_limit < self._balance:
-            raise ValueError('credit_limit cannot be less than balance')
         elif new_credit_limit < 0:
             raise ValueError('credit_limit cannot be negative')
 
@@ -160,7 +158,25 @@ class Credit(Account):
     def del_credit_limit(self):
         self._credit_limit = 0
 
+    def get_balance(self):
+        return self._balance
+
+    def set_balance(self, new_balance):
+        # The balance must be a float or integer type greater than zero.
+        if not isinstance(new_balance, (float, int)):
+            raise TypeError('balance should be a float or integer type')
+        elif new_balance > self._credit_limit:
+            raise ValueError('balance cannot be greater than the credit limit')
+        elif new_balance < 0:
+            raise ValueError('balance cannot be negative')
+        self._balance = new_balance
+
+    def del_balance(self):
+        print('deleting balance...')
+        self._balance = 0
+
     credit_limit = property(get_credit_limit, set_credit_limit, del_credit_limit)
+    balance = property(get_balance, set_balance, del_balance)
 
 
 class Customer:
@@ -259,23 +275,30 @@ def prompt_for_customer():
     for num in range(0, len(master_customer_list)):
         customer = master_customer_list[num].username
         print(f'#{num+1} - {customer}')
-    selection = input('Customer: #')
-    if not int(selection) in range(1, len(master_customer_list)+1):
-        print(f'Please select a valid customer')
+    try:
+        selection = int(input('Customer: #'))
+        if selection not in range(1, len(master_customer_list)+1):
+            print(f'Please select a valid customer')
+            prompt_for_customer()
+        else:
+            print(selection)
+            return selection
+    except:
+        print('Enter a valid customer')
         prompt_for_customer()
-    else:
-        return selection
 
 
 def prompt_for_account():
     print('Select Account Type')
     print('#1 - Checking')
     print('#2 - Savings')
-    account = int(input('Account: #'))
-    if account == 1 or account == 2:
-        return account
-    else:
-        print(f'Please select a valid account')
+
+    try:
+        account = int(input('Account: #'))
+        if account == 1 or account == 2:
+            return account
+    except:
+        print('Please select a valid account')
         prompt_for_account()
 
 
@@ -329,17 +352,19 @@ def deposit():
     :return:
     """
     global master_customer_list
-    customer_num = int(prompt_for_customer()) - 1
+    customer_num = prompt_for_customer() - 1
     # account_type 1-Checking, 2-Savings
-    account_type = int(prompt_for_account())
+    account_type = prompt_for_account()
     amount = float(input('Dollar Amount: $'))
 
     if account_type == 1:
         account = master_customer_list[customer_num].get_checking()
     elif account_type == 2:
         account = master_customer_list[customer_num].get_savings()
-
-    account.balance += amount
+    try:
+        account.balance += amount
+    except ValueError:
+        print('Please enter valid amount.')
     print(f'New Balance: ${account.balance}')
 
 
@@ -348,7 +373,7 @@ def withdraw():
     Interface Option #4
     :return:
     """
-    customer = int(prompt_for_customer()) - 1
+    customer = prompt_for_customer() - 1
     account_type = (prompt_for_account())
     amount = float(input('Dollar Amount: $'))
     try:
@@ -370,7 +395,14 @@ def cc_charge():
     Interface Option #5
     :return:
     """
-    return
+    global master_customer_list
+    customer_num = int(prompt_for_customer())-1
+    amount = float(input('Please enter CC Change amount: $'))
+    credit = master_customer_list[customer_num].get_credit()
+    try:
+        credit.balance += amount
+    except ValueError:
+        print('balance cannot exceed the credit limit')
 
 
 def cc_payment():
@@ -396,7 +428,6 @@ def cc_payment():
         credit.balance -= amount
     except ValueError:
         print(f'${amount} exceeds credit balance')
-
 
     print(f'New balance: ${account.balance}\n'
           f'New credit balance: ${credit.balance}')
