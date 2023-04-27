@@ -147,11 +147,13 @@ class Credit(Account):
         return self._credit_limit
 
     def set_credit_limit(self, new_credit_limit):
-        # The credit_limit must be a float type greater than zero.
+        # The credit_limit must be a float type greater than zero and less than the balance.
         if not isinstance(new_credit_limit, (float, int)):
             raise TypeError('credit_limit should be a float or integer type')
         elif new_credit_limit < self._balance:
             raise ValueError('credit_limit cannot be less than balance')
+        elif new_credit_limit < 0:
+            raise ValueError('credit_limit cannot be negative')
 
         self._credit_limit = new_credit_limit
 
@@ -248,7 +250,8 @@ class Customer:
     checking = property(get_checking, set_checking, del_checking)
     savings = property(get_savings, set_savings, del_savings)
     credit = property(get_credit, set_credit, del_credit)
-    
+
+
 def prompt_for_customer():
     global master_customer_list
 
@@ -257,7 +260,7 @@ def prompt_for_customer():
         customer = master_customer_list[num].username
         print(f'#{num+1} - {customer}')
     selection = input('Customer: #')
-    if not int(selection) in range(1,len(master_customer_list)+1):
+    if not int(selection) in range(1, len(master_customer_list)+1):
         print(f'Please select a valid customer')
         prompt_for_customer()
     else:
@@ -268,12 +271,12 @@ def prompt_for_account():
     print('Select Account Type')
     print('#1 - Checking')
     print('#2 - Savings')
-    account =  input('Account (1/2): ')
-    if account != (1 | 2):
+    account = int(input('Account: #'))
+    if account == 1 or account == 2:
+        return account
+    else:
         print(f'Please select a valid account')
         prompt_for_account()
-    else:
-        return account
 
 
 def import_from_csv():
@@ -333,10 +336,10 @@ def deposit():
 
     if account_type == 1:
         account = master_customer_list[customer_num].get_checking()
-
     elif account_type == 2:
         account = master_customer_list[customer_num].get_savings()
-    account.increment_balance(amount)
+
+    account.balance += amount
     print(f'New Balance: ${account.balance}')
 
 
@@ -345,23 +348,20 @@ def withdraw():
     Interface Option #4
     :return:
     """
-    customer = int(prompt_for_customer())-1
+    customer = int(prompt_for_customer()) - 1
     account_type = (prompt_for_account())
     amount = float(input('Dollar Amount: $'))
     try:
-        #checks for user input edits either checking or savings based on input
+        # checks for user input edits either checking or savings based on input
         if account_type == 1:
             account = master_customer_list[customer].get_checking()
-            bal = account.get_balance()
-            account.set_balance(bal-amount)
-            print(account.get_balance())
-        else:
+        elif account_type == 2:
             account = master_customer_list[customer].get_savings()
-            bal = account.get_balance()
-            account.set_balance(bal-amount)
-            print(account.get_balance())
+
+        account.balance -= amount
     except ValueError:
         print(f'Insufficient funds for withdrawal of ${amount}')
+
     print(f'New balance: ${account.balance}')
 
 
@@ -385,7 +385,6 @@ def save_to_csv():
     """
     Interface Option #9
     Returns:
-
     """
     acct_file = input('accounts csv name: ')
     try:
@@ -430,7 +429,7 @@ def interface():
         print("5: Credit Card Charge")
         print("6: Credit Card Payment")
 
-        print("9: Exit.")
+        print("9: Save and Exit")
 
         # Collect user input
         choice = input('Select an option:').strip()
