@@ -322,7 +322,6 @@ def view_customers():
 
 def deposit():
     """
-    """
     Interface Option #3
     :return:
     """
