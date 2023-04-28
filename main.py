@@ -287,13 +287,13 @@ def prompt_for_customer():
         selection = int(input('Customer: #'))
         if selection not in range(1, len(master_customer_list)+1):
             print(f'Please select a valid customer')
-            prompt_for_customer()
+            return prompt_for_customer()
         else:
             print(selection)
             return selection
     except:
         print('Enter a valid customer')
-        prompt_for_customer()
+        return prompt_for_customer()
 
 
 def prompt_for_account():
@@ -311,10 +311,31 @@ def prompt_for_account():
         account = int(input('Account: #'))
         if account == 1 or account == 2:
             return account
+        else:
+            print('Please select a valid account')
+            return prompt_for_account()
     # If ANY exception is thrown, a message is printed to the user
     except:
         print('Please select a valid account')
-        prompt_for_account()
+        return prompt_for_account()
+
+
+def prompt_for_amount():
+    """
+    This function gets called whenever the user needs to select a specific amount.
+    If the user input is invalid, they are prompted to input again.
+    :return: the first valid selection
+    """
+    try:
+        amount = float(input('Dollar Amount: $'))
+        if amount > 0:
+            return amount
+        else:
+            print('Please input a valid amount')
+            return prompt_for_amount()
+    except:
+        print('Please input a valid amount')
+        return prompt_for_amount()
 
 
 def import_from_csv():
@@ -343,7 +364,7 @@ def import_from_csv():
                                          Checking(line[1], float(line[2])),
                                          Savings(line[3], float(line[4])),
                                          Credit(line[5], float(line[6]), float(line[7])))
-
+                    # Appending the temp variable to the master list of customers
                     master_customer_list.append(temp_item)
     # If the try clause fails, an error is printed to the user
     except FileNotFoundError:
@@ -374,7 +395,7 @@ def deposit():
     # Calling the input prompts to the user
     customer_num = prompt_for_customer() - 1
     account_type = prompt_for_account()  # 1-Checking, 2-Savings
-    amount = float(input('Dollar Amount: $'))
+    amount = prompt_for_amount()
     # A different account is selected depending on the input
     if account_type == 1:
         account = master_customer_list[customer_num].get_checking()
@@ -401,7 +422,7 @@ def withdraw():
     # Calling the input prompts to the user
     customer = prompt_for_customer() - 1
     account_type = (prompt_for_account())
-    amount = float(input('Dollar Amount: $'))
+    amount = prompt_for_amount()
     try:
         # checks for user input edits either checking or savings based on input
         if account_type == 1:
@@ -428,7 +449,7 @@ def cc_charge():
     global master_customer_list
     # Prompting the user for information
     customer_num = int(prompt_for_customer())-1
-    amount = float(input('Please enter CC Change amount: $'))
+    amount = prompt_for_amount()
     # Putting the credit account of the selected customer into a variable.
     credit = master_customer_list[customer_num].get_credit()
     # Using a try clause to attempt to add the charge amount to the current balance
@@ -437,6 +458,8 @@ def cc_charge():
     # If an exception is thrown, then a message is printed to the user.
     except ValueError:
         print('balance cannot exceed the credit limit')
+
+    print(f'New credit balance: ${credit.balance}')
 
 
 def cc_payment():
@@ -451,7 +474,7 @@ def cc_payment():
     # Prompting the user for information
     customer = int(prompt_for_customer()) - 1
     account_type = (prompt_for_account())
-    amount = float(input('Dollar Amount: $'))
+    amount = prompt_for_amount()
     # checks for user input edits either checking or savings based on input
     try:
         if account_type == 1:
