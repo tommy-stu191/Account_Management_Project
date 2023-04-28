@@ -125,7 +125,7 @@ class Credit(Account):
 
     The Credit class has some unique differences to other Account types. Rather than having a balance, the Credit class
     has an attribute 'credit_limit' representing a credit limit. The __init__ and __str__ methods are
-    overloaded to account for this attribute swap.
+    overloaded to account for this new attribute. The get, set, and del methods for balance are also overloaded.
     """
 
     # Overloading the __init__ method from Account add credit_limit.
@@ -158,6 +158,7 @@ class Credit(Account):
     def del_credit_limit(self):
         self._credit_limit = 0
 
+    # Get, set, del methods for balance
     def get_balance(self):
         return self._balance
 
@@ -175,6 +176,7 @@ class Credit(Account):
         print('deleting balance...')
         self._balance = 0
 
+    # Wrapping each (get, set, del) set into a property
     credit_limit = property(get_credit_limit, set_credit_limit, del_credit_limit)
     balance = property(get_balance, set_balance, del_balance)
 
@@ -269,12 +271,18 @@ class Customer:
 
 
 def prompt_for_customer():
+    """
+    This function gets called whenever the user needs to select a specific customer.
+    If the user input is invalid, they are prompted to input again.
+    :return: the first valid selection
+    """
     global master_customer_list
-
+    # Printing the valid customers to the user, as well as the input needed to select the specific user
     print('Select Customer: ')
     for num in range(0, len(master_customer_list)):
         customer = master_customer_list[num].username
         print(f'#{num+1} - {customer}')
+    # Using a try clause for the user input, if it is invalid they are prompted to answer again
     try:
         selection = int(input('Customer: #'))
         if selection not in range(1, len(master_customer_list)+1):
@@ -289,14 +297,21 @@ def prompt_for_customer():
 
 
 def prompt_for_account():
+    """
+    This function gets called whenever the user needs to select a specific account.
+    If the user input is invalid, they are prompted to input again.
+    :return: the first valid selection
+    """
+    # Printing the options to the user
     print('Select Account Type')
     print('#1 - Checking')
     print('#2 - Savings')
-
+    # Wrapping the input calls into a try clause
     try:
         account = int(input('Account: #'))
         if account == 1 or account == 2:
             return account
+    # If ANY exception is thrown, a message is printed to the user
     except:
         print('Please select a valid account')
         prompt_for_account()
@@ -339,9 +354,10 @@ def view_customers():
     """
     Interface Option
     This function will print each customer along with their Account information
-    :return:
+    :return: None
     """
     global master_customer_list
+    # We simply print the customer object, the __str__ methods in the classes handle the printing style.
     for customer in master_customer_list:
         print(customer)
 
@@ -349,20 +365,25 @@ def view_customers():
 def deposit():
     """
     Interface Option #3
-    :return:
+    This function simulates a deposit into a Checking or Savings account. The user is prompted to select the customer,
+    which account they would like to make a deposit, and the amount to deposit in USD. The only restriction is that the
+    deposit must be a positive dollar amount (a positive number).
+    :return: None
     """
     global master_customer_list
+    # Calling the input prompts to the user
     customer_num = prompt_for_customer() - 1
-    # account_type 1-Checking, 2-Savings
-    account_type = prompt_for_account()
+    account_type = prompt_for_account()  # 1-Checking, 2-Savings
     amount = float(input('Dollar Amount: $'))
-
+    # A different account is selected depending on the input
     if account_type == 1:
         account = master_customer_list[customer_num].get_checking()
     elif account_type == 2:
         account = master_customer_list[customer_num].get_savings()
+    # We use a try clause to add the deposit to the account,
     try:
         account.balance += amount
+    # if an exception is thrown, a message is printed to the user.
     except ValueError:
         print('Please enter valid amount.')
     print(f'New Balance: ${account.balance}')
@@ -371,8 +392,13 @@ def deposit():
 def withdraw():
     """
     Interface Option #4
-    :return:
+    This function simulates a withdraw from a Checking or Savings account. The user is prompted to select the customer,
+    which account they would like to make a withdraw, and the amount to withdraw in USD. The amount withdrawn cannot
+    exceed the current balance of that account. The amount withdrawn must also be a positive dollar amount formatted
+    as an integer or float type.
+    :return: None
     """
+    # Calling the input prompts to the user
     customer = prompt_for_customer() - 1
     account_type = (prompt_for_account())
     amount = float(input('Dollar Amount: $'))
@@ -382,8 +408,9 @@ def withdraw():
             account = master_customer_list[customer].get_checking()
         elif account_type == 2:
             account = master_customer_list[customer].get_savings()
-
+        # Subtracting the withdraw from the account specified
         account.balance -= amount
+    # If an exception is thrown, a message is printed to the user.
     except ValueError:
         print(f'Insufficient funds for withdrawal of ${amount}')
 
@@ -393,14 +420,21 @@ def withdraw():
 def cc_charge():
     """
     Interface Option #5
-    :return:
+    This function simulates a Credit Card charge to a credit account. The user is prompted to select the customer and
+    the amount to charge in USD. The charge must be a positive numeric value, and when the charge is added to the
+    balance the new balance cannot exceed the credit limit of that account.
+    :return: None
     """
     global master_customer_list
+    # Prompting the user for information
     customer_num = int(prompt_for_customer())-1
     amount = float(input('Please enter CC Change amount: $'))
+    # Putting the credit account of the selected customer into a variable.
     credit = master_customer_list[customer_num].get_credit()
+    # Using a try clause to attempt to add the charge amount to the current balance
     try:
         credit.balance += amount
+    # If an exception is thrown, then a message is printed to the user.
     except ValueError:
         print('balance cannot exceed the credit limit')
 
@@ -408,24 +442,32 @@ def cc_charge():
 def cc_payment():
     """
     Interface Option #6
-    :return:
+    This function simulates a Credit Card payment to a credit account. The user is prompted to select the customer, the
+    account to take the payment from, and the amount to pay in USD. The payment must be a positive numeric value, and
+    when the payment is taken from the Savings or Checking account, it cannot put the balance of that account negative.
+    The payment must also not exceed the credit balance of the credit account.
+    :return: None
     """
+    # Prompting the user for information
     customer = int(prompt_for_customer()) - 1
     account_type = (prompt_for_account())
     amount = float(input('Dollar Amount: $'))
+    # checks for user input edits either checking or savings based on input
     try:
-        # checks for user input edits either checking or savings based on input
         if account_type == 1:
             account = master_customer_list[customer].get_checking()
         elif account_type == 2:
             account = master_customer_list[customer].get_savings()
-
+        # Attempting to subtract the payment from the specified account
         account.balance -= amount
+    # If an exception is thrown, a message is printed to the user
     except ValueError:
         print(f'Insufficient funds for withdrawal of ${amount}')
+    # A separate try clause is in place for the credit account payment
     try:
         credit = master_customer_list[customer].get_credit()
         credit.balance -= amount
+    # If an exception is thrown, a message is printed to the user.
     except ValueError:
         print(f'${amount} exceeds credit balance')
 
@@ -436,9 +478,13 @@ def cc_payment():
 def save_to_csv():
     """
     Interface Option #9
-    Returns:
+    This function acts as a 'Save and Exit' tool for the interface. When this function gets called, a new csv is created
+    with a user-defined name. This new csv saves all changes that were made during the session and exits the interface.
+    :return: None
     """
+    # Prompting the user to enter the new file name they want created
     acct_file = input('accounts csv name: ')
+    # Wrapping the writing of the new file in a try clause
     try:
         with open(acct_file+'.csv', 'w', newline='') as file:
             writer = csv.writer(file)
@@ -464,13 +510,22 @@ def save_to_csv():
                 cdt_limit = customer_credit.get_credit_limit()
 
                 writer.writerow([username, chk_id, chk_bal, sav_id, sav_bal, cdt_id, cdt_bal, cdt_limit])
+    # If an exception is thrown, a message is printed to the user.
     except FileExistsError:
         print("Error in writing csv")
 
 
 def interface():
-
+    """
+    Main Interface
+    This is the main function for the interface. All selections are run through this function to call the appropriate
+    function. The list of options to choose from are printed to the user each time a selection is needed. If an invalid
+    selection is input by the user, the function prompts them the quesiton again.
+    :return: None
+    """
+    # Initializing the choice variable
     choice = ''
+    # The interface will continue to loop until the 'Save and Exit' command is selected.
     while choice != '9':
 
         # Print the interface options
@@ -486,6 +541,7 @@ def interface():
         # Collect user input
         choice = input('Select an option:').strip()
 
+        # Calling the appropriate function determined by user input.
         if choice == '1':
             import_from_csv()
         elif choice == '2':
